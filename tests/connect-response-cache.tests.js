@@ -5,6 +5,7 @@ var request = require("request");
 var connectResponseCache = require("../");
 
 var port = 50997;
+var maxAge = 100;
     
 exports["GET requests are cached"] = function(test) {
     var server = startServer();
@@ -22,6 +23,26 @@ exports["GET requests are cached"] = function(test) {
             server.stop();
             test.done();
         });
+    });
+};
+    
+exports["cache expires after maxAge"] = function(test) {
+    var server = startServer();
+    
+    server.request("/", function(error, response) {
+        test.ifError(error);
+        var firstId = response.id;
+        setTimeout(function() {
+            server.request("/", function(error, response) {
+                test.ifError(error);
+                var secondId = response.id;
+                
+                test.notEqual(firstId, secondId);
+                
+                server.stop();
+                test.done();
+            });
+        }, maxAge * 2);
     });
 };
     
@@ -46,7 +67,7 @@ exports["POST requests are not cached"] = function(test) {
 
 function startServer() {
     var app = connect()
-        .use(connectResponseCache({maxAge: 1000 * 1000}))
+        .use(connectResponseCache({maxAge: maxAge}))
         .use(function(request, response) {
             response.writeHead(200, {
                 "Content-Type": "application/json"

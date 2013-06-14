@@ -74,6 +74,23 @@ exports["status code is cached if set with property"] = function(test) {
     });
 };
     
+exports["headers are cached when set with setHeader"] = function(test) {
+    var server = startServer(function(request, response) {
+        response.setHeader("X-Message", "Hello!");
+        response.end();
+    });
+    
+    server.request("/", function(error, response, body) {
+        test.equal("Hello!", response.headers["x-message"]);
+        
+        server.request("/", function(error, response, body) {
+            test.equal("Hello!", response.headers["x-message"]);
+            server.stop();
+            test.done();
+        });
+    });
+};
+    
 exports["server errors are not cached"] = function(test) {
     var firstRequest = true;
     var server = startServer(function(request, response, next) {

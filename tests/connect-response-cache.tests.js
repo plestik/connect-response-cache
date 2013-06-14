@@ -26,6 +26,37 @@ exports["GET requests are cached"] = function(test) {
     });
 };
     
+exports["simultaneous requests are cached"] = function(test) {
+    var server = startServer(function(request, response, next) {
+        setTimeout(describeRequestMiddleware.bind(null, request, response), 50);
+    });
+    
+    var firstId;
+    
+    server.request("/", function(error, response, body) {
+        test.ifError(error);
+        firstId = body.id;
+        finish();
+    });
+    
+    var secondId;
+    
+    server.request("/", function(error, response, body) {
+        test.ifError(error);
+        secondId = body.id;
+        finish();
+    });
+    
+    function finish() {
+        if (firstId !== undefined && secondId !== undefined) {
+            test.equal(firstId, secondId);
+            
+            server.stop();
+            test.done();
+        }
+    }
+};
+    
 exports["server errors are not cached"] = function(test) {
     var firstRequest = true;
     var server = startServer(function(request, response, next) {
@@ -140,7 +171,7 @@ function describeRequestMiddleware(request, response) {
 }
 
 
-var id = 0;
+var id = 1;
 function describeRequest(request) {
     return {
         id: id++,

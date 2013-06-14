@@ -57,6 +57,23 @@ exports["simultaneous requests are cached"] = function(test) {
     }
 };
     
+exports["status code is cached if set with property"] = function(test) {
+    var server = startServer(function(request, response) {
+        response.statusCode = 404;
+        response.end();
+    });
+    
+    server.request("/", function(error, response, body) {
+        test.equal(404, response.statusCode);
+        
+        server.request("/", function(error, response, body) {
+            test.equal(404, response.statusCode);
+            server.stop();
+            test.done();
+        });
+    });
+};
+    
 exports["server errors are not cached"] = function(test) {
     var firstRequest = true;
     var server = startServer(function(request, response, next) {

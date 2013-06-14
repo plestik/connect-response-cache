@@ -10,15 +10,40 @@ var maxAge = 100;
 exports["GET requests are cached"] = function(test) {
     var server = startServer();
     
+    server.request("/", function(error, response, body) {
+        test.ifError(error);
+        var firstId = body.id;
+        
+        server.request("/", function(error, response, body) {
+            test.ifError(error);
+            var secondId = body.id;
+            
+            test.equal(firstId, secondId);
+            
+            server.stop();
+            test.done();
+        });
+    });
+};
+    
+exports["server errors are not cached"] = function(test) {
+    var firstRequest = true;
+    var server = startServer(function(request, response, next) {
+        if (firstRequest) {
+            next(new Error("On noes!"));
+            firstRequest = false;
+        } else {
+            describeRequestMiddleware(request, response);
+        }
+    });
+    
     server.request("/", function(error, response) {
         test.ifError(error);
-        var firstId = response.id;
+        test.equal(response.statusCode, 500);
         
         server.request("/", function(error, response) {
             test.ifError(error);
-            var secondId = response.id;
-            
-            test.equal(firstId, secondId);
+            test.equal(response.statusCode, 200);
             
             server.stop();
             test.done();
@@ -29,13 +54,13 @@ exports["GET requests are cached"] = function(test) {
 exports["cache expires after maxAge"] = function(test) {
     var server = startServer();
     
-    server.request("/", function(error, response) {
+    server.request("/", function(error, response, body) {
         test.ifError(error);
-        var firstId = response.id;
+        var firstId = body.id;
         setTimeout(function() {
-            server.request("/", function(error, response) {
+            server.request("/", function(error, response, body) {
                 test.ifError(error);
-                var secondId = response.id;
+                var secondId = body.id;
                 
                 test.notEqual(firstId, secondId);
                 
@@ -49,13 +74,13 @@ exports["cache expires after maxAge"] = function(test) {
 exports["POST requests are not cached"] = function(test) {
     var server = startServer();
     
-    server.request("/", {method: "POST"}, function(error, response) {
+    server.request("/", {method: "POST"}, function(error, response, body) {
         test.ifError(error);
-        var firstId = response.id;
+        var firstId = body.id;
         
-        server.request("/", {method: "POST"}, function(error, response) {
+        server.request("/", {method: "POST"}, function(error, response, body) {
             test.ifError(error);
-            var secondId = response.id;
+            var secondId = body.id;
             
             test.notEqual(firstId, secondId);
             
@@ -90,7 +115,13 @@ function startServer(finalMiddleware) {
         }
         
         request(url(path), options, function(error, response, body) {
-            callback(error, JSON.parse(body));
+            var content;
+            try {
+                content = JSON.parse(body);
+            } catch (e) {
+                content = null;
+            }
+            callback(error, response, content);
         });
     }
     

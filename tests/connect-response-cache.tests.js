@@ -65,16 +65,13 @@ exports["POST requests are not cached"] = function(test) {
     });
 };
 
-function startServer() {
+function startServer(finalMiddleware) {
+    finalMiddleware = finalMiddleware || describeRequestMiddleware;
+    
+    var cacheMiddleware = connectResponseCache({maxAge: maxAge});
     var app = connect()
-        .use(connectResponseCache({maxAge: maxAge}))
-        .use(function(request, response) {
-            response.writeHead(200, {
-                "Content-Type": "application/json"
-            });
-            response.write(JSON.stringify(describeRequest(request)));
-            response.end();
-        });
+        .use(cacheMiddleware)
+        .use(finalMiddleware);
         
     var server = http.createServer(app).listen(port);
     
@@ -101,6 +98,14 @@ function startServer() {
         stop: stop,
         request: serverRequest
     }
+}
+
+function describeRequestMiddleware(request, response) {
+    response.writeHead(200, {
+        "Content-Type": "application/json"
+    });
+    response.write(JSON.stringify(describeRequest(request)));
+    response.end();
 }
 
 

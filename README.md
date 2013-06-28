@@ -11,8 +11,10 @@ Cache responses from your application.
 ```javascript
 var connectResponseCache = require("connect-response-cache");
 
+var oneMinute = 1000 * 60;
+
 var app = connect()
-    .use(connectResponseCache({maxAge: maxAge}))
+    .use(connectResponseCache({maxAge: oneMinute}))
     .use(function(request, response) {
         response.writeHead(200, {
             "Content-Type": "application/json"

@@ -1,26 +1,28 @@
 {
-    "name": "connect-response-cache",
-    "version": "0.1.0",
-    "dependencies": {
-        "q": "~0.9.6"
-    },
-    "devDependencies": {
-        "connect": "~2.7.11",
-        "nodeunit": "~0.8.0",
-        "request": "~2.21"
-    },
-    "scripts": {
-        "test": "nodeunit tests/*.tests.js"
-    },
-    "keywords": [
-        "connect",
-        "response",
-        "cache"
-    ],
-    "main": "./lib/index.js",
-    "licenses": [{
-        "type": "BSD",
-        "url": "http://opensource.org/licenses/BSD-2-Clause"
-    }]
+  "name": "connect-response-cache",
+  "version": "0.1.0",
+  "dependencies": {
+    "q": "~0.9.6",
+    "sqlite3": "~2.1.10"
+  },
+  "devDependencies": {
+    "connect": "~2.7.11",
+    "nodeunit": "~0.8.0",
+    "request": "~2.21"
+  },
+  "scripts": {
+    "test": "nodeunit tests/*.tests.js"
+  },
+  "keywords": [
+    "connect",
+    "response",
+    "cache"
+  ],
+  "main": "./lib/index.js",
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "http://opensource.org/licenses/BSD-2-Clause"
+    }
+  ]
 }
-

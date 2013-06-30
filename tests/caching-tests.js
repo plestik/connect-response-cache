@@ -9,23 +9,35 @@ function addTest(name, func) {
 
 addTest("getValue returns undefined if value is missing", function(caching, test) {
     var cache = caching.createCache(10);
-    test.strictEqual(undefined, cache.getValue("message"));
-    test.done();
+    cache.getValue("message")
+        .then(function(value) {
+            test.strictEqual(undefined, value);
+            test.done();
+        })
+        .done();
 });
 
 addTest("getValue gets value set by setValue", function(caching, test) {
     var cache = caching.createCache(10);
-    cache.setValue("message", "Hello");
-    test.strictEqual("Hello", cache.getValue("message"));
-    test.done();
+    cache.setValue("message", "Hello")
+        .then(function() {
+            return cache.getValue("message");
+        })
+        .then(function(value) {
+            test.strictEqual("Hello", value);
+            test.done();
+        })
+        .done();
 });
 
 addTest("value is lost after maxAge", function(caching, test) {
     var cache = caching.createCache(10);
     cache.setValue("message", "Hello");
     setTimeout(function() {
-        test.strictEqual(undefined, cache.getValue("message"));
-        test.done();
+        cache.getValue("message").then(function(value) {
+            test.strictEqual(undefined, value);
+            test.done();
+        });
     }, 11);
 });
 

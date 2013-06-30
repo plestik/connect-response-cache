@@ -56,6 +56,20 @@ addTest("getValue is case-sensitive when looking up name", function(caching, tes
         .done();
 });
 
+// TODO: store responses more efficiently than an enormous JSON object
+addTest("JSON objects can be cached", function(caching, test) {
+    var cache = caching.createCache(10);
+    cache.setValue("message", {greeting: "Hello"})
+        .then(function() {
+            return cache.getValue("message");
+        })
+        .then(function(value) {
+            test.deepEqual({greeting: "Hello"}, value);
+            test.done();
+        })
+        .done();
+});
+
 addTest("value is lost after maxAge", function(caching, test) {
     var cache = caching.createCache(10);
     cache.setValue("message", "Hello");

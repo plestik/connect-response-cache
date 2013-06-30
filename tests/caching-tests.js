@@ -43,6 +43,19 @@ addTest("getValue ignores values with other names", function(caching, test) {
         .done();
 });
 
+addTest("getValue is case-sensitive when looking up name", function(caching, test) {
+    var cache = caching.createCache(10);
+    cache.setValue("message", "Hello")
+        .then(function() {
+            return cache.getValue("Message");
+        })
+        .then(function(value) {
+            test.strictEqual(undefined, value);
+            test.done();
+        })
+        .done();
+});
+
 addTest("value is lost after maxAge", function(caching, test) {
     var cache = caching.createCache(10);
     cache.setValue("message", "Hello");

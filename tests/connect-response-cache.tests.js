@@ -26,6 +26,33 @@ exports["GET requests are cached"] = function(test) {
     });
 };
     
+exports["binary response bodies can be cached"] = function(test) {
+    var requestCount = 6;
+    var server = startServer(function(request, response, next) {
+        response.writeHead(200, {
+            "Content-Type": "application/octet-stream"
+        });
+        response.write(new Buffer([requestCount++]));
+        response.end();
+    });
+    
+    server.request("/", {encoding: null}, function(error, response, body) {
+        test.ifError(error);
+        var firstId = body.readInt8(0);
+        
+        server.request("/", {encoding: null}, function(error, response, body) {
+            test.ifError(error);
+            var secondId = body.readInt8(0);
+            
+            test.equal(6, firstId);
+            test.equal(6, secondId);
+            
+            server.stop();
+            test.done();
+        });
+    });
+};
+    
 exports["simultaneous requests are cached"] = function(test) {
     var server = startServer(function(request, response, next) {
         setTimeout(describeRequestMiddleware.bind(null, request, response), 50);
@@ -180,13 +207,17 @@ function startServer(finalMiddleware) {
         }
         
         request(url(path), options, function(error, response, body) {
-            var content;
-            try {
-                content = JSON.parse(body);
-            } catch (e) {
-                content = null;
+            if (options.encoding === null) {
+                callback(error, response, body);
+            } else {
+                var content;
+                try {
+                    content = JSON.parse(body);
+                } catch (e) {
+                    content = null;
+                }
+                callback(error, response, content);
             }
-            callback(error, response, content);
         });
     }
     

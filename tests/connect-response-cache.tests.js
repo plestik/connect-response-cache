@@ -32,20 +32,21 @@ exports["binary response bodies can be cached"] = function(test) {
         response.writeHead(200, {
             "Content-Type": "application/octet-stream"
         });
-        response.write(new Buffer([requestCount++]));
+        response.write(new Buffer([requestCount++, 0, 4]));
         response.end();
     });
     
     server.request("/", {encoding: null}, function(error, response, body) {
         test.ifError(error);
-        var firstId = body.readInt8(0);
+        test.equal(6, body.readInt8(0));
+        test.equal(0, body.readInt8(1));
+        test.equal(4, body.readInt8(2));
         
         server.request("/", {encoding: null}, function(error, response, body) {
             test.ifError(error);
-            var secondId = body.readInt8(0);
-            
-            test.equal(6, firstId);
-            test.equal(6, secondId);
+            test.equal(6, body.readInt8(0));
+            test.equal(0, body.readInt8(1));
+            test.equal(4, body.readInt8(2));
             
             server.stop();
             test.done();

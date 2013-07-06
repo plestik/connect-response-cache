@@ -27,32 +27,42 @@ exports["GET requests are cached"] = function(test) {
 };
     
 exports["binary response bodies can be cached"] = function(test) {
+    var zip = createZip();
+    
     var requestCount = 6;
     var server = startServer(function(request, response, next) {
         response.writeHead(200, {
             "Content-Type": "application/octet-stream"
         });
-        response.write(new Buffer([requestCount++, 0, 4]));
+        response.write(zip.buffer());
         response.end();
     });
     
     server.request("/", {encoding: null}, function(error, response, body) {
         test.ifError(error);
-        test.equal(6, body.readInt8(0));
-        test.equal(0, body.readInt8(1));
-        test.equal(4, body.readInt8(2));
+        test.ok(equalBuffers(zip.buffer(), body));
         
         server.request("/", {encoding: null}, function(error, response, body) {
             test.ifError(error);
-            test.equal(6, body.readInt8(0));
-            test.equal(0, body.readInt8(1));
-            test.equal(4, body.readInt8(2));
+            test.ok(equalBuffers(zip.buffer(), body));
             
             server.stop();
             test.done();
         });
     });
 };
+
+function equalBuffers(first, second) {
+    if (first.length !== second.length) {
+        return false;
+    }
+    for (var i = 0; i < first.length; i++) {
+        if (first[i] !== second[i]) {
+            return false;
+        }
+    }
+    return true;
+}
     
 exports["simultaneous requests are cached"] = function(test) {
     var server = startServer(function(request, response, next) {
@@ -232,8 +242,7 @@ function describeRequestMiddleware(request, response) {
     response.writeHead(200, {
         "Content-Type": "application/json"
     });
-    response.write(JSON.stringify(describeRequest(request)));
-    response.end();
+    response.end(JSON.stringify(describeRequest(request)));
 }
 
 
@@ -246,5 +255,19 @@ function describeRequest(request) {
         method: request.method,
         httpVersion: request.httpVersion,
         time: new Date().getTime()
+    };
+}
+
+function createZip() {
+    var zip = new require("node-zip")();
+    zip.file("message", "Hello!");
+    var uint8array = zip.generate({
+        type: "uint8array",
+        compression: "DEFLATE"
+    });
+    return {
+        buffer: function() {
+            return new Buffer(uint8array);
+        }
     };
 }

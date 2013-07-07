@@ -192,6 +192,25 @@ exports["POST requests are not cached"] = function(test) {
         });
     });
 };
+    
+exports["requests with different Host headers are not cached"] = function(test) {
+    var server = startServer();
+    
+    server.request("/", {headers: {"host": "eg.com"}}, function(error, response, body) {
+        test.ifError(error);
+        var firstId = body.id;
+        
+        server.request("/", {headers: {"host": "example.com"}}, function(error, response, body) {
+            test.ifError(error);
+            var secondId = body.id;
+            
+            test.notEqual(firstId, secondId);
+            
+            server.stop();
+            test.done();
+        });
+    });
+};
 
 function startServer(finalMiddleware) {
     finalMiddleware = finalMiddleware || describeRequestMiddleware;

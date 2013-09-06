@@ -1,6 +1,7 @@
 var connect = require("connect");
 var http = require("http");
 var request = require("request");
+var temp = require("temp");
 
 var connectResponseCache = require("../");
 
@@ -215,7 +216,12 @@ exports["requests with different Host headers are not cached"] = function(test) 
 function startServer(finalMiddleware) {
     finalMiddleware = finalMiddleware || describeRequestMiddleware;
     
-    var cacheMiddleware = connectResponseCache({maxAge: maxAge});
+    var cacheDir = temp.mkdirSync();
+    
+    var cacheMiddleware = connectResponseCache({
+        maxAge: maxAge,
+        cachePath: cacheDir
+    });
     var app = connect()
         .use(cacheMiddleware)
         .use(finalMiddleware);

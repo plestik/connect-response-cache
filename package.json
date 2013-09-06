@@ -4,13 +4,14 @@
   "dependencies": {
     "q": "~0.9.6",
     "sqlite3": "~2.1.10",
-    "buffers": "0.1.1"
+    "node-uuid": "~1.4.1"
   },
   "devDependencies": {
     "connect": "~2.7.11",
     "nodeunit": "~0.8.0",
     "request": "~2.21",
-    "node-zip": "~1.0.1"
+    "node-zip": "~1.0.1",
+    "temp": "~0.5.1"
   },
   "scripts": {
     "test": "nodeunit tests/*.tests.js"
